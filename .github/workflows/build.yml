@@ -16,23 +16,32 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Tu dong tao Project
+      - name: Khoi tao du an chuẩn 2026
         run: |
           mkdir -p app/src/main/java/com/example/app
           mkdir -p app/src/main/res/layout
+          
+          # File settings mới để quản lý thư viện tập trung
           cat <<EOF > settings.gradle
-          rootProject.name='app'
+          pluginManagement {
+              repositories { google(); mavenCentral(); gradlePluginPortal() }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories { google(); mavenCentral() }
+          }
+          rootProject.name='AudioAI'
           include ':app'
           EOF
+
+          # File build gốc tối giản
           cat <<EOF > build.gradle
           buildscript {
-              repositories { google(); mavenCentral() }
               dependencies { classpath 'com.android.tools.build:gradle:8.2.2' }
           }
-          allprojects {
-              repositories { google(); mavenCentral() }
-          }
           EOF
+
+          # File build cho App
           cat <<EOF > app/build.gradle
           plugins { id 'com.android.application' }
           android {
@@ -48,6 +57,8 @@ jobs:
           }
           dependencies { implementation 'androidx.appcompat:appcompat:1.6.1' }
           EOF
+
+          # Manifest và Code giao diện
           cat <<EOF > app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <application android:label="AudioAI Clean">
@@ -66,13 +77,12 @@ jobs:
           import android.os.Bundle;
           import android.widget.TextView;
           import android.view.Gravity;
-
           public class MainActivity extends Activity {
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
                   TextView t = new TextView(this);
-                  t.setText("CHUC MUNG!\nAPK DA BUILD THANH CONG");
+                  t.setText("THANH CONG RÔI!\nCHUC MUNG MINH CHU!");
                   t.setTextSize(30);
                   t.setGravity(Gravity.CENTER);
                   setContentView(t);
@@ -80,7 +90,7 @@ jobs:
           }
           EOF
 
-      - name: Setup Gradle (v8.5 chuẩn)
+      - name: Setup Gradle (v8.5)
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.5
