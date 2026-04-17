@@ -16,15 +16,26 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Khoi tao dự án mẫu
+      # 🔥 CÀI ANDROID SDK (CÁI BẠN ĐANG THIẾU)
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept licenses
+        run: yes | sdkmanager --licenses
+
+      - name: Install SDK packages
+        run: |
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-34"
+          sdkmanager "build-tools;34.0.0"
+
+      # 🔥 TẠO PROJECT
+      - name: Create project
         run: |
           mkdir -p app/src/main/java/com/example/app
-          mkdir -p app/src/main/res/layout
-          
-          cat <<EOF > settings.gradle
-          rootProject.name='AudioAI'
-          include ':app'
-          EOF
+
+          echo "rootProject.name='app'" > settings.gradle
+          echo "include ':app'" >> settings.gradle
 
           cat <<EOF > build.gradle
           buildscript {
@@ -49,15 +60,15 @@ jobs:
                   versionName "1.0"
               }
           }
-          dependencies { 
-              implementation 'androidx.appcompat:appcompat:1.6.1' 
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
           }
           EOF
 
           cat <<EOF > app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-              <application android:label="AudioAI Clean">
-                  <activity android:name=".MainActivity" android:exported="true">
+              <application android:label="APK OK">
+                  <activity android:name=".MainActivity">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN"/>
                           <category android:name="android.intent.category.LAUNCHER"/>
@@ -72,32 +83,31 @@ jobs:
           import android.app.Activity;
           import android.os.Bundle;
           import android.widget.TextView;
-          import android.view.Gravity;
+
           public class MainActivity extends Activity {
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
                   TextView t = new TextView(this);
-                  t.setText("TU TIÊN THÀNH CÔNG!\nAPK ĐÃ XUẤT THẾ!");
-                  t.setTextSize(25);
-                  t.setGravity(Gravity.CENTER);
+                  t.setText("APK OK - THANH CONG");
                   setContentView(t);
               }
           }
           EOF
 
-      - name: Cài đặt và tạo Gradle Wrapper
+      # 🔥 TẠO WRAPPER
+      - name: Setup Gradle Wrapper
         run: |
-          sudo apt install gradle -y
           gradle wrapper --gradle-version 8.2.2
-
-      - name: Build APK (Dùng Wrapper)
-        run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
 
+      # 🔥 BUILD CHUẨN
+      - name: Build APK
+        run: ./gradlew assembleDebug
+
+      # 🔥 LẤY FILE
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug
+          name: apk
           path: app/build/outputs/apk/debug/app-debug.apk
